@@ -5,19 +5,10 @@
 
 #include <cassert>
 
-#define DBLCIN_GET() std::cin.get(); std::cin.get()
-#define CIN_RECOVER() std::cin.clear(); std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n')
-
 constexpr uint32_t GNumberOfAllelesInGenotype = 2;
 constexpr uint32_t GNumberOfPossibleGenotypesAfterCrossing = 4;
 
-// ASCII character table difference when subtracting lower character from upper one.
-constexpr int8_t GUpperLowerDiff = 32;
-
-// ASCII character table difference when subtracting upper character from lower one.
-constexpr int8_t GLowerUpperDif = -32;
-
-// ASCII character table difference that's not different.
+constexpr int8_t GLowerUpperDiff = -32;
 constexpr int8_t GNoDiff = 0;
 
 namespace Utils
@@ -26,6 +17,18 @@ namespace Utils
 	{
 		assert(integer != 0);
 		return integer == 1 ? "st" : integer == 2 ? "nd" : integer == 3 ? "rd" : "th";
+	}
+
+	void RecoverCin()
+	{
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+
+	void DoubleCinGet()
+	{
+		std::cin.get();
+		std::cin.get();
 	}
 }
 
@@ -70,13 +73,7 @@ struct Genotype
 	{
 		// Alleles must be the same characters. Examples: XX, Xx, xx
 		char diff = Alleles[0] - Alleles[1];
-		if (diff != GUpperLowerDiff && diff != GLowerUpperDif && diff != GNoDiff)
-		{
-			return false;
-		}
-
-		// xX is not a valid genotype, check for it.
-		if (IsFalselyOrdered())
+		if (diff != GLowerUpperDiff && diff != GNoDiff)
 		{
 			return false;
 		}
@@ -89,8 +86,8 @@ struct Genotype
 		char diff0 = Alleles[0] - other[0];
 		char diff1 = Alleles[1] - other[1];
 
-		const bool chkdiff0 = diff0 != GUpperLowerDiff && diff0 != GLowerUpperDif && diff0 != GNoDiff;
-		const bool chkdiff1 = diff1 != GUpperLowerDiff && diff1 != GLowerUpperDif && diff1 != GNoDiff;
+		const bool chkdiff0 = diff0 != GLowerUpperDiff && diff0 != GNoDiff;
+		const bool chkdiff1 = diff1 != GLowerUpperDiff && diff1 != GNoDiff;
 
 		if (chkdiff0 || chkdiff1)
 		{
@@ -165,7 +162,7 @@ AskGenotype:
 
 	if (!(std::cin >> input))
 	{
-		CIN_RECOVER();
+		Utils::RecoverCin();
 
 	ReAsk:
 		std::cout << "Invalid genotype formatting, re-enter." << std::endl;
@@ -194,7 +191,7 @@ int main()
 	if (!firstGenotype.CanBeCrossedWith(secondGenotype))
 	{
 		std::cout << "These genotypes cannot be crossed with each other!" << std::endl;
-		DBLCIN_GET();
+		Utils::DoubleCinGet();
 		return -1;
 	}
 
@@ -261,7 +258,5 @@ int main()
 	std::cout << pureDominantGenotypeCount << "/4 of the possibilities was/were pure dominant characters." << std::endl;
 	std::cout << heterogeneousDominantGenotypeCount << "/4 of the possibilities was/were heterogeneous dominant characters." << std::endl;
 
-	DBLCIN_GET();
-
-	return 0;
+	Utils::DoubleCinGet();
 }
