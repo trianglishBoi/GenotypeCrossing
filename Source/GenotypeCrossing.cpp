@@ -107,7 +107,7 @@ struct Genotype
 		return Alleles[0].IsDominant() ? Alleles[1].IsDominant() : false;
 	}
 
-	bool IsHeteregenousDominant() const
+	bool IsHeterogeneousDominant() const
 	{
 		return Alleles[0].IsDominant() ? !Alleles[1].IsDominant() : false;
 	}
@@ -231,7 +231,7 @@ int main()
 		{
 			pureDominantGenotypeCount++;
 		}
-		else if (genotype.IsHeteregenousDominant())
+		else if (genotype.IsHeterogeneousDominant())
 		{
 			heterogeneousDominantGenotypeCount++;
 		}
