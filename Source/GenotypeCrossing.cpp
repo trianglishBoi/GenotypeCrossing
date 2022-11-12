@@ -8,8 +8,6 @@
 #define DBLCIN_GET() std::cin.get(); std::cin.get()
 #define CIN_RECOVER() std::cin.clear(); std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n')
 
-#define MAKE_GENOTYPE(symbol1, symbol2) Genotype(Allele(symbol1), Allele(symbol2))
-
 constexpr uint32_t GNumberOfAllelesInGenotype = 2;
 constexpr uint32_t GNumberOfPossibleGenotypesAfterCrossing = 4;
 
@@ -22,36 +20,13 @@ constexpr int8_t GLowerUpperDif = -32;
 // ASCII character table difference that's not different.
 constexpr int8_t GNoDiff = 0;
 
-namespace Utils {
-
+namespace Utils
+{
 	const char* GetIntegerPostfix(size_t integer)
 	{
 		assert(integer != 0);
 		return integer == 1 ? "st" : integer == 2 ? "nd" : integer == 3 ? "rd" : "th";
 	}
-
-	template <typename NumType>
-	NumType SubtractLowerFromGreater(NumType N0, NumType N1, bool zeroCare = false, bool doNothingWhenEqual = false)
-	{
-		if (doNothingWhenEqual)
-		{
-			if (N0 == N1)
-			{
-				return N0;
-			}
-		}
-
-		if (zeroCare)
-		{
-			if (N0 == (NumType) 0 || N1 == (NumType) 0)
-			{
-				return (NumType) 0;
-			}
-		}
-
-		return N0 > N1 ? N0 - N1 : N1 - N0;
-	}
-
 }
 
 struct Allele
@@ -130,6 +105,16 @@ struct Genotype
 		return Alleles[0].IsDominant();
 	}
 
+	bool IsPureDominant() const
+	{
+		return Alleles[0].IsDominant() ? Alleles[1].IsDominant() : false;
+	}
+
+	bool IsHeteregenousDominant() const
+	{
+		return Alleles[0].IsDominant() ? !Alleles[1].IsDominant() : false;
+	}
+
 	bool IsPure() const
 	{
 		return Alleles[0].IsDominant() ? Alleles[1].IsDominant() : true;
@@ -162,13 +147,19 @@ struct Genotype
 	{
 		return ToString();
 	}
+
+	operator bool() const
+	{
+		return IsValid();
+	}
 };
 
 Genotype AskForGenotypeInput(int whichGenotype)
 {
 	const char* numPostfix = Utils::GetIntegerPostfix(whichGenotype);
+	Genotype result;
 	std::string input;
-	
+
 AskGenotype:
 	std::cout << whichGenotype << numPostfix << " Genotype: ";
 
@@ -186,13 +177,13 @@ AskGenotype:
 		goto ReAsk;
 	}
 
-	Genotype genotype = MAKE_GENOTYPE(input[0], input[1]);
-	if (!genotype.IsValid())
+	result = Genotype(input[0], input[1]);
+	if (!result)
 	{
 		goto ReAsk;
 	}
 
-	return genotype;
+	return result;
 }
 
 int main()
@@ -212,14 +203,17 @@ int main()
 
 	std::array<Genotype, GNumberOfPossibleGenotypesAfterCrossing> crossingResults =
 	{
-		MAKE_GENOTYPE(firstGenotype[0], secondGenotype[0]),
-		MAKE_GENOTYPE(firstGenotype[0], secondGenotype[1]),
-		MAKE_GENOTYPE(firstGenotype[1], secondGenotype[0]),
-		MAKE_GENOTYPE(firstGenotype[1], secondGenotype[1])
+		Genotype(firstGenotype[0], secondGenotype[0]),
+		Genotype(firstGenotype[0], secondGenotype[1]),
+		Genotype(firstGenotype[1], secondGenotype[0]),
+		Genotype(firstGenotype[1], secondGenotype[1])
 	};
 
 	size_t pureGenotypeCount{};
 	size_t genotypesWithDominantCharacterCount{};
+
+	size_t pureDominantGenotypeCount{};
+	size_t heterogeneousDominantGenotypeCount{};
 
 	for (size_t i = 1; i <= crossingResults.size(); i++)
 	{
@@ -236,6 +230,15 @@ int main()
 			pureGenotypeCount++;
 		}
 
+		if (genotype.IsPureDominant())
+		{
+			pureDominantGenotypeCount++;
+		}
+		else if (genotype.IsHeteregenousDominant())
+		{
+			heterogeneousDominantGenotypeCount++;
+		}
+
 		if (genotype.HasDominantCharacter())
 		{
 			genotypesWithDominantCharacterCount++;
@@ -250,9 +253,6 @@ int main()
 	std::cout << "There was/were " << pureGenotypeCount << " pure genotypes from the possibilities." << std::endl;
 	std::cout << "There was/were " << heterogeneousGenotypeCount << " heterogeneous genotypes from the possibilities." << std::endl;
 	std::cout << "There was/were " << genotypesWithDominantCharacterCount << " genotypes with dominant character from the possibilities." << std::endl;
-
-	size_t pureDominantGenotypeCount = Utils::SubtractLowerFromGreater(genotypesWithDominantCharacterCount, pureGenotypeCount, true, true);
-	size_t heterogeneousDominantGenotypeCount = Utils::SubtractLowerFromGreater(heterogeneousGenotypeCount, genotypesWithDominantCharacterCount, true, true);
 
 	std::cout << "!-----------------------= IN-DEPTH OVERVIEW =-----------------------!" << std::endl;
 	std::cout << pureGenotypeCount << "/4 of the possibilities was/were pure." << std::endl;
