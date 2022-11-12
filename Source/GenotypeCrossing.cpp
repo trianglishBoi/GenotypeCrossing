@@ -15,7 +15,8 @@ namespace Utils
 {
 	const char* GetIntegerPostfix(size_t integer)
 	{
-		assert(integer != 0);
+		// 0th is a thing, really.
+		// assert(integer != 0);
 		return integer == 1 ? "st" : integer == 2 ? "nd" : integer == 3 ? "rd" : "th";
 	}
 
